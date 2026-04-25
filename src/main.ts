@@ -5,6 +5,7 @@ import { createViewerState } from "./pdf/state";
 import { debounce } from "./pdf/debounce";
 import { setupControls } from "./pdf/controls";
 import type { PDFDocumentProxy } from "pdfjs-dist/types/src/display/api";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 const canvas = document.querySelector("#slide-canvas") as HTMLCanvasElement;
 const emptyState = document.querySelector("#empty-state") as HTMLDivElement;
@@ -44,6 +45,18 @@ setupControls({
     render();
   },
   open: openPdf,
+  fullscreen: async () => {
+    state.toggleFullscreen();
+    await getCurrentWindow().setFullscreen(state.fullscreen);
+  },
+  quit: async () => {
+    await getCurrentWindow().close();
+  },
+  goto: (page: number) => {
+    state.setPage(page);
+    render()
+  },
 });
+
 
 window.addEventListener("resize", render);

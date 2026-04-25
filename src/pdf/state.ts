@@ -1,24 +1,33 @@
 export function createViewerState(getPageCount: () => number) {
   let currentPage = 1;
+  let fullscreen = true;
+
+  function setPage(page: number) {
+    const max = getPageCount();
+    if (page >= 1 && page <= max) {
+      currentPage = page;
+    }
+  }
 
   return {
     get currentPage() {
       return currentPage;
     },
-
-    setPage(page: number) {
-      const max = getPageCount();
-      if (page >= 1 && page <= max) {
-        currentPage = page;
-      }
+    get fullscreen() {
+      return fullscreen;
+    },
+    toggleFullscreen() {
+      fullscreen = !fullscreen;    
     },
 
+    setPage,
+
     next() {
-      this.setPage(currentPage + 1);
+      setPage(currentPage + 1);
     },
 
     prev() {
-      this.setPage(currentPage - 1);
+      setPage(currentPage - 1);
     },
   };
 }
