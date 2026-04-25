@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keyframe</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <main class="app">
+      <div class="stage">
+        <canvas id="slide-canvas"></canvas>
+        <div class="empty-state" id="empty-state">
+          <div class="empty-title">Open a PDF</div>
+          <div class="empty-action">Press <kbd>O</kbd></div>
+
+          <div class="empty-hints">
+            <div><kbd>Space</kbd> / <kbd>→</kbd> next</div>
+            <div><kbd>←</kbd> previous</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
