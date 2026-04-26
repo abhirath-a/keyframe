@@ -53,16 +53,21 @@ export async function getOrRenderPage(
 
 	const page = await pdfDoc.getPage(pageNumber);
 	const viewport = page.getViewport({ scale });
+	const dpr = window.devicePixelRatio || 1;
 
 	const canvas = document.createElement("canvas");
 	const context = canvas.getContext("2d", { alpha: false });
 	if (!context) throw new Error("Could not get canvas context");
 
-	canvas.width = Math.floor(viewport.width);
-	canvas.height = Math.floor(viewport.height);
+	canvas.width = Math.floor(viewport.width * dpr);
+	canvas.height = Math.floor(viewport.height * dpr);
+	canvas.style.width = `${Math.floor(viewport.width)}px`;
+	canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+	context.scale(dpr, dpr);
 
 	const renderTask = page.render({
-		canvas,
+    canvas ,
 		canvasContext: context,
 		viewport: viewport,
 		intent: "display",
