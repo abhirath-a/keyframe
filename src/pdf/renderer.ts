@@ -1,51 +1,75 @@
 import type { PDFDocumentProxy } from "pdfjs-dist/types/src/display/api";
+import type { createPageCache } from "./cache";
 
 let activeRenderTask: { cancel: () => void } | null = null;
 
-export async function renderPage(
-  pdfDoc: PDFDocumentProxy,
-  canvas: HTMLCanvasElement,
-  pageNumber: number
+export async function renderPage(canvas: HTMLCanvasElement, dataUrl: string) {
+	if (activeRenderTask) {
+		activeRenderTask.cancel();
+		activeRenderTask = null;
+	}
+
+	const container = canvas.parentElement as HTMLElement;
+	const dpr = window.devicePixelRatio || 1;
+
+	const image = new Image();
+	image.src = dataUrl;
+	await image.decode();
+
+	const scale = Math.min(
+		container.clientWidth / image.width,
+		container.clientHeight / image.height,
+	);
+
+	const scaledWidth = image.width * scale;
+	const scaledHeight = image.height * scale;
+
+	const context = canvas.getContext("2d", { alpha: false });
+	if (!context) return;
+
+	canvas.width = Math.floor(scaledWidth * dpr);
+	canvas.height = Math.floor(scaledHeight * dpr);
+
+	canvas.style.width = `${Math.floor(scaledWidth)}px`;
+	canvas.style.height = `${Math.floor(scaledHeight)}px`;
+
+	context.setTransform(dpr, 0, 0, dpr, 0, 0);
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+}
+
+export async function getOrRenderPage(
+	pdfDoc: PDFDocumentProxy,
+	pageNumber: number,
+	cache: ReturnType<typeof createPageCache>,
+	options: { scale: number },
 ) {
-  if (activeRenderTask) {
-    activeRenderTask.cancel();
-    activeRenderTask = null;
-  }
+	const { scale } = options;
+	const key = `${pageNumber}-${scale.toPrecision(3)}`;
 
-  const page = await pdfDoc.getPage(pageNumber);
-  const container = canvas.parentElement as HTMLElement;
+	if (cache.has(key)) {
+		return cache.get(key);
+	}
 
-  const dpr = window.devicePixelRatio || 1;
-  const viewport = page.getViewport({ scale: 1 });
+	const page = await pdfDoc.getPage(pageNumber);
+	const viewport = page.getViewport({ scale });
 
-  const scale = Math.min(
-    container.clientWidth / viewport.width,
-    container.clientHeight / viewport.height
-  );
+	const canvas = document.createElement("canvas");
+	const context = canvas.getContext("2d", { alpha: false });
+	if (!context) throw new Error("Could not get canvas context");
 
-  const scaledViewport = page.getViewport({ scale });
+	canvas.width = Math.floor(viewport.width);
+	canvas.height = Math.floor(viewport.height);
 
-  const context = canvas.getContext("2d", { alpha: false });
-  if (!context) return;
+	const renderTask = page.render({
+		canvas,
+		canvasContext: context,
+		viewport: viewport,
+		intent: "display",
+	});
 
-  canvas.width = Math.floor(scaledViewport.width * dpr);
-  canvas.height = Math.floor(scaledViewport.height * dpr);
-
-  canvas.style.width = `${Math.floor(scaledViewport.width)}px`;
-  canvas.style.height = `${Math.floor(scaledViewport.height)}px`;
-
-  context.setTransform(dpr, 0, 0, dpr, 0, 0);
-  context.clearRect(0, 0, canvas.width, canvas.height);
-
-  const renderTask = page.render({
-    canvas,
-    canvasContext: context,
-    viewport: scaledViewport,
-    intent: "display",
-  });
-
-  activeRenderTask = renderTask;
-
-  await renderTask.promise;
-  activeRenderTask = null;
+	await renderTask.promise;
+	const dataUrl = canvas.toDataURL("image/png");
+	cache.set(key, dataUrl);
+	return dataUrl;
 }

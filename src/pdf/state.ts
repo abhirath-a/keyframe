@@ -1,33 +1,33 @@
+import { clamp } from "./util";
+
 export function createViewerState(getPageCount: () => number) {
-  let currentPage = 1;
-  let fullscreen = true;
+	let currentPage = 1;
+	let fullscreen = true;
 
-  function setPage(page: number) {
-    const max = getPageCount();
-    if (page >= 1 && page <= max) {
-      currentPage = page;
-    }
-  }
+	function setPage(page: number) {
+		const max = getPageCount();
+		currentPage = clamp(page, 1, max);
+	}
 
-  return {
-    get currentPage() {
-      return currentPage;
-    },
-    get fullscreen() {
-      return fullscreen;
-    },
-    toggleFullscreen() {
-      fullscreen = !fullscreen;    
-    },
+	return {
+		get currentPage() {
+			return currentPage;
+		},
+		get fullscreen() {
+			return fullscreen;
+		},
+		toggleFullscreen() {
+			fullscreen = !fullscreen;
+		},
 
-    setPage,
+		setPage,
 
-    next() {
-      setPage(currentPage + 1);
-    },
+		next() {
+			setPage(currentPage + 1);
+		},
 
-    prev() {
-      setPage(currentPage - 1);
-    },
-  };
+		prev() {
+			setPage(currentPage - 1);
+		},
+	};
 }
