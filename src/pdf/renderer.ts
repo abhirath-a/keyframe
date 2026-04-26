@@ -3,7 +3,10 @@ import type { createPageCache } from "./cache";
 
 let activeRenderTask: { cancel: () => void } | null = null;
 
-export async function renderPage(canvas: HTMLCanvasElement, dataUrl: string) {
+export async function renderPage(
+	canvas: HTMLCanvasElement,
+	bitmap: ImageBitmap,
+) {
 	if (activeRenderTask) {
 		activeRenderTask.cancel();
 		activeRenderTask = null;
@@ -12,30 +15,31 @@ export async function renderPage(canvas: HTMLCanvasElement, dataUrl: string) {
 	const container = canvas.parentElement as HTMLElement;
 	const dpr = window.devicePixelRatio || 1;
 
-	const image = new Image();
-	image.src = dataUrl;
-	await image.decode();
+	const cssW = bitmap.width / dpr;
+	const cssH = bitmap.height / dpr;
 
 	const scale = Math.min(
-		container.clientWidth / image.width,
-		container.clientHeight / image.height,
+		container.clientWidth / cssW,
+		container.clientHeight / cssH,
 	);
 
-	const scaledWidth = image.width * scale;
-	const scaledHeight = image.height * scale;
+	const scaledCssW = cssW * scale;
+	const scaledCssH = cssH * scale;
 
 	const context = canvas.getContext("2d", { alpha: false });
 	if (!context) return;
 
-	canvas.width = Math.floor(scaledWidth * dpr);
-	canvas.height = Math.floor(scaledHeight * dpr);
+	canvas.width = Math.round(scaledCssW * dpr);
+	canvas.height = Math.round(scaledCssH * dpr);
+	canvas.style.width = `${Math.round(scaledCssW)}px`;
+	canvas.style.height = `${Math.round(scaledCssH)}px`;
 
-	canvas.style.width = `${Math.floor(scaledWidth)}px`;
-	canvas.style.height = `${Math.floor(scaledHeight)}px`;
-
-	context.setTransform(dpr, 0, 0, dpr, 0, 0);
+	context.setTransform(1, 0, 0, 1, 0, 0);
 	context.clearRect(0, 0, canvas.width, canvas.height);
-	context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+
+	context.imageSmoothingEnabled = false;
+
+	context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 }
 
 export async function getOrRenderPage(
@@ -43,13 +47,12 @@ export async function getOrRenderPage(
 	pageNumber: number,
 	cache: ReturnType<typeof createPageCache>,
 	options: { scale: number },
-) {
+): Promise<ImageBitmap> {
 	const { scale } = options;
 	const key = `${pageNumber}-${scale.toPrecision(3)}`;
 
-	if (cache.has(key)) {
-		return cache.get(key);
-	}
+	const cached = cache.get(key);
+	if (cached) return cached;
 
 	const page = await pdfDoc.getPage(pageNumber);
 	const viewport = page.getViewport({ scale });
@@ -59,22 +62,23 @@ export async function getOrRenderPage(
 	const context = canvas.getContext("2d", { alpha: false });
 	if (!context) throw new Error("Could not get canvas context");
 
-	canvas.width = Math.floor(viewport.width * dpr);
-	canvas.height = Math.floor(viewport.height * dpr);
-	canvas.style.width = `${Math.floor(viewport.width)}px`;
-	canvas.style.height = `${Math.floor(viewport.height)}px`;
+	canvas.width = Math.round(viewport.width * dpr);
+	canvas.height = Math.round(viewport.height * dpr);
 
-	context.scale(dpr, dpr);
+	context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
 	const renderTask = page.render({
-    canvas ,
+		canvas,
 		canvasContext: context,
-		viewport: viewport,
+		viewport,
 		intent: "display",
 	});
 
+	activeRenderTask = { cancel: () => renderTask.cancel() };
+
 	await renderTask.promise;
-	const dataUrl = canvas.toDataURL("image/png");
-	cache.set(key, dataUrl);
-	return dataUrl;
+
+	const bitmap = await createImageBitmap(canvas);
+	cache.set(key, bitmap);
+	return bitmap;
 }

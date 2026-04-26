@@ -1,14 +1,17 @@
-type PageCache = Map<string, string>;
+type PageCache = Map<string, ImageBitmap>;
 
 export function createPageCache() {
 	const cache: PageCache = new Map();
 
-	function get(page: string): string | undefined {
+	function get(page: string): ImageBitmap | undefined {
 		return cache.get(page);
 	}
 
-	function set(page: string, data: string) {
-		cache.set(page, data);
+	function set(page: string, bitmap: ImageBitmap) {
+		const prev = cache.get(page);
+		if (prev) prev.close();
+
+		cache.set(page, bitmap);
 	}
 
 	function has(page: string): boolean {
@@ -16,6 +19,10 @@ export function createPageCache() {
 	}
 
 	function clear() {
+		for (const bmp of cache.values()) {
+			bmp.close();
+		}
+
 		cache.clear();
 	}
 
