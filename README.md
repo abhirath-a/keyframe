@@ -19,7 +19,6 @@ lightweight "just bind to a system lib" option unless you enable the
 - `python3` (used by MuPDF's build scripts)
 - A recent Rust stable toolchain
 
-
 ## Build & run
 
 ```sh
@@ -28,8 +27,7 @@ cargo run --release
 
 ## Controls
 
-Both arrow-key/"normie" bindings and vim-style bindings are active at
-the same time by default:
+These are the default keybinds. They are all configurable in the configuration file
 
 | Action              | Default keys                              |
 |---------------------|--------------------------------------------|
