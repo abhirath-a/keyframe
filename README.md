@@ -2,6 +2,8 @@
 
 A minimal, cross-platform PDF slideshow presenter. 
 
+![screenshot](.github/screenshot1.jpg)
+
 ## Build prerequisites
 
 `mupdf-sys` compiles MuPDF from source at build time (there's no

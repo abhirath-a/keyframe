@@ -6,8 +6,10 @@ description = "minimal rust-based pdf presenter"
 
 [dependencies]
 eframe = { version = "0.28", default-features = false, features = [
-    "wgpu",
-    "default_fonts",
+  "wgpu",
+  "default_fonts",
+  "x11",
+  "wayland"
 ] }
 egui = "0.28"
 
