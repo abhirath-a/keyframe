@@ -151,9 +151,12 @@ the script downloads linuxdeploy and bundles shared libraries, including
 the window-system libraries loaded at runtime. Build on the matching OS
 and architecture. The workflow lists the required Linux build packages.
 
-The **Release** GitHub Actions workflow builds and tests all five platform
-targets. Run it manually from the Actions tab to download installers from
-the workflow artifacts. Pushing a `v*` tag additionally publishes all packages
+The **Build and Release** GitHub Actions workflow builds and tests all five
+platform targets on every branch push and pull request, and can also run
+manually from the Actions tab. Download installers from the workflow artifacts
+(kept for seven days for ordinary builds). Rust and native dependency builds
+are cached per platform, tests share the release build profile, and newer
+commits cancel superseded runs. Pushing a `v*` tag additionally publishes all packages
 and SHA-256 checksum manifests to a GitHub Release. Manual runs do not create
 a release. Linux CI launches each AppImage under a virtual display; macOS
 packaging validates the app signature and installer payload.

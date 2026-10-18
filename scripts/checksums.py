@@ -9,6 +9,8 @@ output = directory / sys.argv[2]
 with output.open("w", encoding="utf-8", newline="\n") as manifest:
     for path in sorted(directory.iterdir()):
         if path.is_file() and not path.name.endswith("-SHA256SUMS.txt"):
+            digest = hashlib.sha256()
             with path.open("rb") as source:
-                digest = hashlib.file_digest(source, "sha256").hexdigest()
-            manifest.write(f"{digest}  {path.name}\n")
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            manifest.write(f"{digest.hexdigest()}  {path.name}\n")
