@@ -54,7 +54,6 @@
               libxkbcommon
               glibc.dev
               libGL
-              vulkan-loader
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
@@ -63,7 +62,8 @@
               "-isystem ${pkgs.glibc.dev}/include";
 
             postInstall = ''
-              # If you have desktop files/icons, install them here.
+              install -Dm644 packaging/linux/dev.keyframe.Keyframe.desktop $out/share/applications/dev.keyframe.Keyframe.desktop
+              install -Dm644 packaging/keyframe.svg $out/share/icons/hicolor/scalable/apps/dev.keyframe.Keyframe.svg
             '';
           };
         }
@@ -98,7 +98,6 @@
               libxkbcommon
               glibc.dev
               libGL
-              vulkan-loader
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
@@ -111,7 +110,6 @@
                 pkgs.lib.makeLibraryPath [
                   pkgs.wayland
                   pkgs.libxkbcommon
-                  pkgs.vulkan-loader
                   pkgs.libGL
                 ]
               }:/run/opengl-driver/lib"

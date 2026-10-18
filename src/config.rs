@@ -14,6 +14,8 @@ pub struct Config {
     /// How many pages ahead *and* behind the current page to keep rendered
     /// and cached. `1` (the default) means: current, previous, and next.
     pub cache_window: usize,
+    /// RGBA texture budget for prefetched pages. The current slide is always kept.
+    pub cache_memory_mb: usize,
 
     /// Rendering resolution in dots-per-inch. Higher = crisper on large /
     /// high-DPI displays, but slower to render and more memory per page.
@@ -39,22 +41,36 @@ pub struct Config {
     /// Any action not listed here keeps its built-in default (vim + normie)
     /// bindings. Listing an action replaces its defaults entirely.
     pub keybinds: HashMap<String, Vec<String>>,
+    /// Most recently opened documents, newest first.
+    pub recent_documents: Vec<PathBuf>,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             cache_window: 1,
+            cache_memory_mb: 24,
             render_dpi: 150.0,
             background_color: [18, 18, 18],
             start_fullscreen: false,
             vsync: true,
             keybinds: HashMap::new(),
+            recent_documents: Vec::new(),
         }
     }
 }
 
 impl Config {
+    pub fn save(&self) -> anyhow::Result<()> {
+        let path = Self::config_path()
+            .ok_or_else(|| anyhow::anyhow!("Could not locate the configuration directory"))?;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(path, toml::to_string_pretty(self)?)?;
+        Ok(())
+    }
+
     pub fn config_path() -> Option<PathBuf> {
         directories::ProjectDirs::from("dev", "keyframe", "keyframe")
             .map(|dirs| dirs.config_dir().join("config.toml"))

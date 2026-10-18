@@ -1,2 +1,5 @@
 target/
+dist/
 .direnv/
+__pycache__/
+*.pyc

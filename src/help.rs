@@ -6,7 +6,7 @@ use crate::keybinds::{Action, KeyCombo};
 
 /// Draws a full-screen semi-transparent overlay listing every action and
 /// its currently-bound keys. Toggled by `Action::ToggleHelp` (default `?`).
-pub fn show_help_overlay(ctx: &Context, binds: &HashMap<Action, Vec<KeyCombo>>) {
+pub fn show_help_overlay(ctx: &Context, binds: &HashMap<Action, Vec<KeyCombo>>, open: &mut bool) {
     egui::Area::new(Id::new("help_overlay"))
         .anchor(Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
         .order(egui::Order::Foreground)
@@ -14,7 +14,8 @@ pub fn show_help_overlay(ctx: &Context, binds: &HashMap<Action, Vec<KeyCombo>>) 
         .show(ctx, |ui| {
             // Dim the whole screen behind the panel.
             let screen = ctx.screen_rect();
-            ui.painter().rect_filled(screen, 0.0, Color32::from_black_alpha(200));
+            ui.painter()
+                .rect_filled(screen, 0.0, Color32::from_black_alpha(200));
 
             egui::Frame::popup(ui.style())
                 .inner_margin(egui::Margin::same(20.0))
@@ -22,6 +23,9 @@ pub fn show_help_overlay(ctx: &Context, binds: &HashMap<Action, Vec<KeyCombo>>) 
                     ui.set_max_width(420.0);
                     ui.vertical(|ui| {
                         ui.heading("Keyboard Shortcuts");
+                        if ui.button("Close").clicked() {
+                            *open = false;
+                        }
                         ui.add_space(8.0);
 
                         egui::Grid::new("help_grid")
@@ -46,10 +50,10 @@ pub fn show_help_overlay(ctx: &Context, binds: &HashMap<Action, Vec<KeyCombo>>) 
 
                         ui.add_space(12.0);
                         ui.separator();
+                        ui.label("Ctrl/Cmd+O  Open a PDF");
+                        ui.label("Esc  Leave fullscreen or dismiss a dialog");
                         ui.add_space(6.0);
-                        ui.label(
-                            RichText::new("Press ? again to close").weak().italics(),
-                        );
+                        ui.label(RichText::new("Press ? again to close").weak().italics());
                     });
                 });
         });

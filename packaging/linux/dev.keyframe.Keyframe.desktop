@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Keyframe
+Comment=Present PDF slides
+Exec=keyframe %f
+Icon=dev.keyframe.Keyframe
+Terminal=false
+Categories=Office;Viewer;
+MimeType=application/pdf;
+StartupWMClass=keyframe

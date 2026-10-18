@@ -64,11 +64,17 @@ pub struct KeyCombo {
 
 impl KeyCombo {
     pub fn plain(key: Key) -> Self {
-        Self { key, modifiers: Modifiers::NONE }
+        Self {
+            key,
+            modifiers: Modifiers::NONE,
+        }
     }
 
     pub fn shift(key: Key) -> Self {
-        Self { key, modifiers: Modifiers::SHIFT }
+        Self {
+            key,
+            modifiers: Modifiers::SHIFT,
+        }
     }
 
     /// Parses strings like "Left", "space", "shift+g", "?", "F11".
@@ -105,6 +111,7 @@ impl KeyCombo {
             && input.modifiers.shift == self.modifiers.shift
             && input.modifiers.ctrl == self.modifiers.ctrl
             && input.modifiers.alt == self.modifiers.alt
+            && input.modifiers.mac_cmd == self.modifiers.mac_cmd
     }
 
     /// Short display string for the help screen, e.g. "Shift+G".
@@ -151,6 +158,7 @@ fn key_display_name(key: Key) -> &'static str {
         Key::N => "N",
         Key::P => "P",
         Key::Q => "Q",
+        Key::F1 => "F1",
         _ => "?",
     }
 }
@@ -185,11 +193,23 @@ pub fn default_keybinds() -> HashMap<Action, Vec<KeyCombo>> {
             KeyCombo::plain(P), // vim: previous
         ],
     );
-    m.insert(Action::FirstPage, vec![KeyCombo::plain(Home), KeyCombo::plain(G)]);
-    m.insert(Action::LastPage, vec![KeyCombo::plain(End), KeyCombo::shift(G)]);
-    m.insert(Action::ToggleHelp, vec![KeyCombo::plain(Questionmark)]);
-    m.insert(Action::ToggleFullscreen, vec![KeyCombo::plain(F), KeyCombo::plain(F11)]);
-    m.insert(Action::Quit, vec![KeyCombo::plain(Q), KeyCombo::plain(Escape)]);
+    m.insert(
+        Action::FirstPage,
+        vec![KeyCombo::plain(Home), KeyCombo::plain(G)],
+    );
+    m.insert(
+        Action::LastPage,
+        vec![KeyCombo::plain(End), KeyCombo::shift(G)],
+    );
+    m.insert(
+        Action::ToggleHelp,
+        vec![KeyCombo::plain(Questionmark), KeyCombo::plain(F1)],
+    );
+    m.insert(
+        Action::ToggleFullscreen,
+        vec![KeyCombo::plain(F), KeyCombo::plain(F11)],
+    );
+    m.insert(Action::Quit, vec![KeyCombo::plain(Q)]);
 
     m
 }
