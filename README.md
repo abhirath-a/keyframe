@@ -1,5 +1,7 @@
 # Keyframe
 
+![screenshot](.github/screenshot1.jpg)
+
 A native, cross-platform desktop app for presenting PDF slides. Open Keyframe
 from your application launcher, choose a PDF, and click **Present**.
 
@@ -104,7 +106,6 @@ and install its `bin/` and `share/` contents into `~/.local/` (ensure
 automatically. The native file picker uses the desktop's
 `xdg-desktop-portal` service.
 
-![screenshot](.github/screenshot1.jpg)
 
 ## Build prerequisites
 
